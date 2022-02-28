@@ -1,0 +1,5 @@
+.ipynb_checkpoints/
+log_files/
+**/text/*.aux
+data/
+
