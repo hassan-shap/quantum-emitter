@@ -165,7 +165,7 @@ def x_recovery(x1,y1,z1,x2,y2,z2):
     return px,py,pz
 
 l = 3 # number of sublattice points (2 for toric code) or primal/dual
-Nrep = 10 # number of iterations
+Nrep = 1000 # number of iterations
 repeat = 4
 L_list = [8,10,12,14]
 pz_list = np.linspace(0.02,0.04,10)
