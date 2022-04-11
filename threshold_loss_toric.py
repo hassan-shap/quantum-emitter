@@ -8,9 +8,9 @@ import time
 repeat = 4
 Nrep_loss = 2000 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [12,16,20]
-prob_l = 0.2 # loss rate
-pz_list = np.linspace(0.06,0.1,5)
+L_list = [8,12,16,20]
+prob_l = 0.425 # loss rate
+pz_list = np.arange(0.01,0.031,0.005) #np.linspace(0.06,0.1,5)
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -329,7 +329,7 @@ for i_rep in np.arange(repeat):
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_toric/" + "L_%d_i_%d.npz" % (r,i_rep)
+        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
         np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
