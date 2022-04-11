@@ -10,7 +10,7 @@ Nrep_loss = 200 # number of iterations
 Nrep_flip = 1 # number of iterations
 L_list = [8,12,16,20]
 prob_l = 0.425 # loss rate
-pz_list = np.arange(0.01,0.026,0.003) #np.linspace(0.06,0.1,5)
+pz_list = np.arange(0.01,0.031,0.005) #np.linspace(0.06,0.1,5)
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
