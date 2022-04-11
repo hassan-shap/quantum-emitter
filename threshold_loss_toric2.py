@@ -365,7 +365,7 @@ for i_rep in np.arange(repeat):
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_toric/" + "two_L_%d_i_%d.npz" % (r,i_rep)
+        fname = "data_loss_toric/" + "two_p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
         np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
