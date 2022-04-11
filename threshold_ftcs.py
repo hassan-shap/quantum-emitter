@@ -170,51 +170,52 @@ repeat = 4
 L_list = [8,10,12,14]
 pz_list = np.linspace(0.02,0.04,10)
 
-for i_rep in range(repeat):
-    for i_L, r in enumerate(L_list):
+for i_L, r in enumerate(L_list):
+
+    r1 = r # dimension of cube
+    r2 = r # dimension of cube
+    r3 = r # dimension of cube
+
+    # star stabilzers
+    Sx = np.zeros((r1*r2*r3,l*r1*r2*r3))
+    for ix in range(r1):
+        for iy in range(r2):
+            for iz in range(r3):
+                Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))] = 1
+                Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))+1] = 1
+                Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))+2] = 1
+                Sx[ix + r1*(iy+ r2*iz), l*( ((ix-1)%r1) + r1*(iy+ r2*iz))] = 1
+                Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*( ((iy-1)%r2)+ r2*iz) )+1] = 1
+                Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2* ((iz-1)%r3)) )+2] = 1
+
+    logicals = np.zeros((3,l*r1*r2*r3))
+    ## x ops
+    for i1 in range(r2):
+        logicals[0,np.ix_(3*np.arange(i1*r1,r1*r2*r3,r1*r2))] = np.ones(r3)
+    for i1 in range(r3):
+        logicals[1,np.ix_(1+ 3*(i1*r1*r2+ np.arange(0,r1) ) )] = np.ones(r1)
+    logicals[2,2:3*r1*r2+1:3] = np.ones(r1*r2) 
+
+    inds = np.arange(0,r1*r2*r3)
+    zs = np.floor(inds/(r1*r2))
+    z1, z2 = np.meshgrid(zs,zs)
+    dz_abs = np.abs(z1-z2)
+    dz = np.minimum(dz_abs,r3-dz_abs)
+    ys = np.mod(np.floor(inds/r1) , r2)
+    y1, y2 = np.meshgrid(ys,ys)
+    dy_abs = np.abs(y1-y2)
+    dy = np.minimum(dy_abs,r2-dy_abs)
+    xs = np.mod(inds, r1)
+    x1, x2 = np.meshgrid(xs,xs)
+    dx_abs = np.abs(x1-x2)
+    dx = np.minimum(dx_abs,r1-dx_abs)
+    dl = dx+dy+dz
+    for i_rep in range(repeat):
+        tic = time.time()
         print("L= ", r, " rep= ", i_rep)
         fail_prob_z = np.zeros(len(pz_list))
 
-        tic = time.time()
-        r1 = r # dimension of cube
-        r2 = r # dimension of cube
-        r3 = r # dimension of cube
-
-        # star stabilzers
-        Sx = np.zeros((r1*r2*r3,l*r1*r2*r3))
-        for ix in range(r1):
-            for iy in range(r2):
-                for iz in range(r3):
-                    Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))] = 1
-                    Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))+1] = 1
-                    Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2*iz))+2] = 1
-                    Sx[ix + r1*(iy+ r2*iz), l*( ((ix-1)%r1) + r1*(iy+ r2*iz))] = 1
-                    Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*( ((iy-1)%r2)+ r2*iz) )+1] = 1
-                    Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2* ((iz-1)%r3)) )+2] = 1
-
-        logicals = np.zeros((3,l*r1*r2*r3))
-        ## x ops
-        for i1 in range(r2):
-            logicals[0,np.ix_(3*np.arange(i1*r1,r1*r2*r3,r1*r2))] = np.ones(r3)
-        for i1 in range(r3):
-            logicals[1,np.ix_(1+ 3*(i1*r1*r2+ np.arange(0,r1) ) )] = np.ones(r1)
-        logicals[2,2:3*r1*r2+1:3] = np.ones(r1*r2) 
-
-        inds = np.arange(0,r1*r2*r3)
-        zs = np.floor(inds/(r1*r2))
-        z1, z2 = np.meshgrid(zs,zs)
-        dz_abs = np.abs(z1-z2)
-        dz = np.minimum(dz_abs,r3-dz_abs)
-        ys = np.mod(np.floor(inds/r1) , r2)
-        y1, y2 = np.meshgrid(ys,ys)
-        dy_abs = np.abs(y1-y2)
-        dy = np.minimum(dy_abs,r2-dy_abs)
-        xs = np.mod(inds, r1)
-        x1, x2 = np.meshgrid(xs,xs)
-        dx_abs = np.abs(x1-x2)
-        dx = np.minimum(dx_abs,r1-dx_abs)
-        dl = dx+dy+dz
-
+        
         # print(np.dot(logicals,logicals.T))
         for i_p, prob_z in enumerate(pz_list):
             # z flip error
