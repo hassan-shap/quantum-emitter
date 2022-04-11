@@ -2,32 +2,32 @@ import numpy as np
 from pymatching import Matching
 import time
 
-repeat = 2
-Nrep = 100 # number of iterations
+repeat = 4
+Nrep = 4000 # number of iterations
 L_list = [6,8,10]
-prob_l = 0.05 # loss rate
+prob_l = 0.2 # loss rate
 pz_list = np.linspace(0.06,0.1,10)
 fail_prob_z = np.zeros((len(L_list),len(pz_list)))
 
-for i_L, r in enumerate(L_list):
-    l = 2 # number of sublattice points (2 for toric code) or primal/dual
-#     r = 5 # number of columns
-    r1 = r # number of rows
-    r2 = r # number of rows
-
-  # star stabilzers
-    Sx = np.zeros((r1*r2,l*r1*r2),dtype=int)
-    for i_y in range(r2):
-        for i_x in range(r1):
-            Sx[i_y*r1 + i_x, 2*(i_y*r1 + i_x)] = 1
-            Sx[i_y*r1 + i_x, 2*(i_y*r1 + i_x)+1] = 1
-            Sx[i_y*r1 + i_x, 2*(i_y*r1+(i_x-1)%r1 )] = 1
-            Sx[i_y*r1 + i_x, 2*(((i_y-1)%r1)*r1+i_x)+1] = 1
-
-    for i_rep in range(repeat):
+for i_rep in range(repeat):
+    for i_L, r in enumerate(L_list):
         tic = time.time()
         print("L= ", r, " rep= ", i_rep)
         fail_prob_z = np.zeros(len(pz_list))
+
+        l = 2 # number of sublattice points (2 for toric code) or primal/dual
+    #     r = 5 # number of columns
+        r1 = r # number of rows
+        r2 = r # number of rows
+
+      # star stabilzers
+        Sx = np.zeros((r1*r2,l*r1*r2),dtype=int)
+        for i_y in range(r2):
+            for i_x in range(r1):
+                Sx[i_y*r1 + i_x, 2*(i_y*r1 + i_x)] = 1
+                Sx[i_y*r1 + i_x, 2*(i_y*r1 + i_x)+1] = 1
+                Sx[i_y*r1 + i_x, 2*(i_y*r1+(i_x-1)%r1 )] = 1
+                Sx[i_y*r1 + i_x, 2*(((i_y-1)%r1)*r1+i_x)+1] = 1
 
         for i_p, prob_z in enumerate(pz_list):
             for i_n in range(Nrep):
