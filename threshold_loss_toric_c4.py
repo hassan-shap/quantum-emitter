@@ -6,11 +6,11 @@ import networkx as nx
 import time
 
 repeat = 4
-Nrep_loss = 200 # number of iterations
+Nrep_loss = 2000 # number of iterations
 Nrep_flip = 1 # number of iterations
 L_list = [8,12,16,20]
-prob_l = 0.425 # loss rate
-pz_list = np.arange(0.01,0.031,0.005) #np.linspace(0.06,0.1,5)
+prob_l = 0.3 # loss rate
+pz_list = np.linspace(0.02,0.1,6) #np.arange(0.02,0.071,0.005) 
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -138,123 +138,87 @@ for i_rep in np.arange(repeat):
             Sx_red = Sx_red[:,keep_cols]
 
             qubits_to_plot = remain_inds[keep_cols]
-            return Sx_red, Sx_new, inds_old, inds_new, qubits_to_plot
+            return Sx_red, qubits_to_plot
 
         ##################
-        def find_logical_ops(Sx,Sx_new,inds_old,inds_new,qubits_to_plot):
+        def find_logical_ops(qubits_to_plot):
             num_qubits = len(qubits_to_plot)
-            
-            def horizontal_logic(i2):
-                # i2 = int(r2/2)
-                i_h = (i2*r1+np.arange(r1))
-                logical_h = np.zeros(l*r1*r2)
-                i_new_used = np.zeros(len(inds_new),dtype = bool)
-                for h_pos in i_h:
-                    if h_pos in inds_old:
-                        logical_h += Sx[h_pos,:] 
-                    else:   
-                        for i_new in range(len(inds_new)):
-                            if h_pos in inds_new[i_new] and i_new_used[i_new]==False:
-                                logical_h += Sx_new[i_new,:] 
-                                i_new_used[i_new] = True
+            Gq_y = nx.Graph()
+            for qubit in qubits_to_plot:
+                if qubit % 2 == 0:
+                    if int(qubit/2)-r1 >= 0:
+                        Gq_y.add_edge(int(qubit/2),int(qubit/2)-r1)
+                else:
+                    q2 = int(int(qubit/2)/r1)*r1 + ((int(qubit/2)%r1-1)%r1)
+                    Gq_y.add_edge(int(qubit/2),q2)
 
-                logical_h = (logical_h% 2)
-                ind_logic = np.argwhere(logical_h>0)[:,0]
-
-                return logical_h
-            logic_graph = []
-            for i2 in range(r2):
-                logical_h = horizontal_logic(i2)
-                inds_logic_h = np.argwhere(logical_h[qubits_to_plot] > 0 )[:,0]
-                Gq_x = nx.Graph()
-                for qubit in qubits_to_plot[inds_logic_h]:
-                    if qubit % 2 == 1:
-                        if (int(qubit/2)%r1)-1 >= 0:
-                            Gq_x.add_edge(int(qubit/2),int(qubit/2)-1)
-                    else:
-                        q2 = ((int(int(qubit/2)/r1)-1)%r2)*r1 + (int(qubit/2)%r1)
-                        Gq_x.add_edge(int(qubit/2),q2)
-
-                components = [Gq_x.subgraph(c).copy() for c in nx.connected_components(Gq_x)]
-                if len(components)==2:
-                    logic_graph = components[0].nodes()
+            first_row = np.arange(r1)
+            last_row = np.arange((r2-1)*r1,r2*r1)
+            path_y = False
+            for i_first in first_row:
+                if i_first in Gq_y.nodes():
+                    for i_last in last_row:
+                        if i_last in Gq_y.nodes():
+                            if nx.has_path(Gq_y,i_first,i_last):
+                                if (i_first - i_last )%r1 ==0 and (2*i_first in qubits_to_plot):
+                                    path_y = True
+                                    path_y_vals = nx.shortest_path(Gq_y,i_first,i_last)
+                                    break
+                if path_y:
                     break
-            if len(components)!=2:
-                print("could not find horz logical op")
 
-            logical_qs = []
-            for vertex in logic_graph:
-                if 2*vertex in qubits_to_plot[inds_logic_h]:
-                    logical_qs.append(2*vertex)
-                if 2*vertex+1 in qubits_to_plot[inds_logic_h]:
-                    logical_qs.append(2*vertex+1)
-                v2 = int(vertex/r1)*r1 + ((vertex%r1)+1)%r1
-                if 2*v2+1 in qubits_to_plot[inds_logic_h]:
-                    logical_qs.append(2*v2+1)
-                v2 = ((int(vertex/r1)+1)%r2)*r1 + (vertex%r1)
-                if 2*v2 in qubits_to_plot[inds_logic_h]:
-                    logical_qs.append(2*v2)
+            Gq_x = nx.Graph()
+            for qubit in qubits_to_plot:
+                if qubit % 2 == 1:
+                    if (int(qubit/2)%r1)-1 >= 0:
+                        Gq_x.add_edge(int(qubit/2),int(qubit/2)-1)
+                else:
+                    q2 = ((int(int(qubit/2)/r1)-1)%r2)*r1 + (int(qubit/2)%r1)
+                    Gq_x.add_edge(int(qubit/2),q2)
+
+            first_col = np.arange(0,(r2-1)*r1+1,r1)
+            last_col = np.arange(r1-1,r2*r1+1,r1)
+            path_x = False
+            for i_first in first_col:
+                if i_first in Gq_x.nodes():
+                    for i_last in last_col:
+                        if i_last in Gq_x.nodes():
+                            if nx.has_path(Gq_x,i_first,i_last):
+                                if int(i_first/r1) == int(i_last/r1) and (2*i_first+1 in qubits_to_plot):
+                                    path_x = True
+                                    path_x_vals = nx.shortest_path(Gq_x,i_first,i_last)
+                                    break
+                if path_x:
+                    break
+            # if path_x and path_y:
+            logical_y = np.zeros(l*r1*r2)
+            logical_y[2*path_y_vals[0]] = 1
+            for i_v, v1 in enumerate(path_y_vals):
+                if i_v < len(path_y_vals)-1:
+                    v2 = path_y_vals[i_v+1]
+                    if np.abs(v2-v1)==1:
+                        logical_y[2*max([v1,v2])+1] = 1
+                    elif np.abs(v2-v1)==r1:
+                        logical_y[2*max([v1,v2])] = 1
+                    else:
+                        logical_y[2*min([v1,v2])+1] = 1
 
             logical_x = np.zeros(l*r1*r2)
-            logical_x[logical_qs] = 1
-
-            ################
-            def vertical_logic(i1):
-                i_v = (i1+r1*np.arange(r2))
-                logical_v = np.zeros(l*r1*r2)
-                i_new_used = np.zeros(len(inds_new),dtype = bool)
-                for v_pos in i_v:
-                    if v_pos in inds_old:
-                        logical_v += Sx[v_pos,:] 
-                    else:   
-                        for i_new in range(len(inds_new)):
-                            if v_pos in inds_new[i_new] and i_new_used[i_new]==False:
-                                logical_v += Sx_new[i_new,:] 
-                                i_new_used[i_new] = True
-
-                logical_v = (logical_v% 2)
-                ind_logic = np.argwhere(logical_v>0)[:,0]
-                used_inds = np.argwhere(i_new_used==True)[:,0]
-
-                return logical_v
-            logic_graph = []
-            for i1 in range(r1):
-                logical_v = vertical_logic(i1)
-                inds_logic_v = np.argwhere(logical_v[qubits_to_plot] > 0 )[:,0]
-                Gq_y = nx.Graph()
-                for qubit in qubits_to_plot[inds_logic_v]:
-                    if qubit % 2 == 0:
-                        if int(qubit/2)-r1 >= 0:
-                            Gq_y.add_edge(int(qubit/2),int(qubit/2)-r1)
+            logical_x[2*path_x_vals[0]+1] = 1
+            for i_v, v1 in enumerate(path_x_vals):
+                if i_v < len(path_x_vals)-1:
+                    v2 = path_x_vals[i_v+1]
+                    if np.abs(v2-v1)==1:
+                        logical_x[2*max([v1,v2])+1] = 1
+                    elif np.abs(v2-v1)==r1:
+                        logical_x[2*max([v1,v2])] = 1
                     else:
-                        q2 = int(int(qubit/2)/r1)*r1 + ((int(qubit/2)%r1-1)%r1)
-                        Gq_y.add_edge(int(qubit/2),q2)
-
-                components = [Gq_y.subgraph(c).copy() for c in nx.connected_components(Gq_y)]
-                if len(components)==2:
-                    logic_graph = components[0].nodes()
-                    break
-            if len(components)!=2:
-                print("could not find vert logical op")
-           
-            logical_qs = []
-            for vertex in logic_graph:
-                if 2*vertex in qubits_to_plot[inds_logic_v]:
-                    logical_qs.append(2*vertex)
-                if 2*vertex+1 in qubits_to_plot[inds_logic_v]:
-                    logical_qs.append(2*vertex+1)
-                v2 = int(vertex/r1)*r1 + ((vertex%r1)+1)%r1
-                if 2*v2+1 in qubits_to_plot[inds_logic_v]:
-                    logical_qs.append(2*v2+1)
-                v2 = ((int(vertex/r1)+1)%r2)*r1 + (vertex%r1)
-                if 2*v2 in qubits_to_plot[inds_logic_v]:
-                    logical_qs.append(2*v2)
-
-            logical_y = np.zeros(l*r1*r2)
-            logical_y[logical_qs] = 1
-
+                        logical_x[2*min([v1,v2])] = 1
             return logical_x, logical_y
-           
+            # return path_x and path_y, logical_x, logical_y
+            # else:
+            #     return False, 0, 0
+
         def netx_Sx(Sx_red,qubits_to_plot):
             overlap = Sx_red.T@Sx_red
             inds_to_keep = list(range(np.size(Sx_red,1)))
@@ -308,7 +272,7 @@ for i_rep in np.arange(repeat):
             error_loss[loss_inds] = 1
             error_loss[remain_inds] = 0
 
-            Sx_red, Sx_new, inds_old, inds_new, qubits_to_plot = compute_eff_Sx(Sx,loss_inds,remain_inds)
+            Sx_red, qubits_to_plot = compute_eff_Sx(Sx,loss_inds,remain_inds)
 
             lost_qubits = np.array(list(set(np.arange(l*r1*r2)) - set(qubits_to_plot)))
             percolate_y, percolate_x = does_loss_percolate(lost_qubits)
@@ -318,7 +282,7 @@ for i_rep in np.arange(repeat):
                 loss_prob +=  1
                 continue
 
-            logical_x, logical_y = find_logical_ops(Sx,Sx_new,inds_old,inds_new,qubits_to_plot)
+            logical_x, logical_y = find_logical_ops(qubits_to_plot)
             # logic_exist, logical_x, logical_y = find_logical_ops(qubits_to_plot)
             # if not logic_exist:
             #     fail_prob_z[i_L,i_p] +=  1
@@ -365,7 +329,7 @@ for i_rep in np.arange(repeat):
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_toric/" + "two_p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
+        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
         np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
