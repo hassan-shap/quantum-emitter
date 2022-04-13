@@ -5,12 +5,13 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 1
-Nrep_loss = 1 # number of iterations
+repeat = 4
+Nrep_loss = 100 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [6]#[16,24,32] # [8,12,16,20]
+L_list = [6,8,10,12]#[16,24,32] # [8,12,16,20]
 prob_l = 0.1 # loss rate
-pz_list = [0.02]#np.linspace(0.01,0.1,6) #np.arange(0.02,0.071,0.005) 
+pz_list = np.linspace(0.005,0.025,6) #np.arange(0.02,0.071,0.005) 
+l = 3 # number of links per node
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -28,72 +29,6 @@ for i_rep in np.arange(repeat):
         for i1 in range(r3):
             logicals[1,np.ix_(1+ 3*(i1*r1*r2+ np.arange(0,r1) ) )] = np.ones(r1)
         logicals[2,2:3*r1*r2+1:3] = np.ones(r1*r2) 
-
-
-        tic = time.time()
-
-        def does_loss_percolate(loss_inds):
-            Gy = nx.Graph()
-            Gy.add_nodes_from(np.arange(r1*r2))
-            Gx = nx.Graph()
-            Gx.add_nodes_from(np.arange(r1*r2))
-
-
-            for i2 in range(r2):
-                for i1 in range(r1):
-                    ind1 = i2*r1+ i1
-                    ind2 = i2*r1 + ((i1+1)%r1)
-                    # cylinder along y
-                    if 2*ind1 in loss_inds:
-                        Gy.add_edge(ind1,ind2)
-                    if ind1 +r1 < r1*r2 and 2*ind1+1 in loss_inds:
-                        Gy.add_edge(ind1,ind1+r1)
-                    # cylinder along x
-                    ind2 = ((i2+1)%r2)*r1 + i1
-                    if 2*ind1+1 in loss_inds:
-                        Gx.add_edge(ind1,ind2)
-                    if i1+1 < r1 and 2*ind1 in loss_inds:
-                        Gx.add_edge(ind1,ind1+1)
-
-            first_row = np.arange(r1)
-            last_row = np.arange((r2-1)*r1,r2*r1)
-            path_y = False
-            for i_first in first_row:
-                for i_last in last_row:
-                    if nx.has_path(Gy,i_first,i_last):
-                        if (i_first - i_last )%r1 ==0: # or 2*i_last+1 in loss_inds
-                            path_y = True
-                            break
-                if path_y:
-                    break
-
-            first_col = np.arange(0,(r2-1)*r1+1,r1)
-            last_col = np.arange(r1-1,r2*r1+1,r1)
-            path_x = False
-            for i_first in first_col:
-                for i_last in last_col:
-                    if nx.has_path(Gx,i_first,i_last):
-                        if  int(i_first/r1) == int(i_last/r1): # or 2*i_last in loss_inds
-                            path_x = True
-                            break
-                if path_x:
-                    break
-
-            for i in range(len(loss_inds)):
-                ind1 = int(loss_inds[i]/2)
-                if loss_inds[i] % 2 == 0 :
-                    ind2 = int(int(loss_inds[i]/2)/r1)*r1 + (((int(loss_inds[i]/2)%r1)+1)%r1)
-                    assert Gy.has_edge(ind1,ind2)
-                    ind2 = ind1 + 1
-                    if (int(loss_inds[i]/2)%r1)+1 < r1:
-                        assert Gx.has_edge(ind1,ind2)     
-                else:
-                    ind2 = ind1 + r1
-                    if ind2 < r1*r2:
-                        assert Gy.has_edge(ind1,ind2)
-                    ind2 = ((int(int(loss_inds[i]/2)/r1)+1)%r2)*r1 + (int(loss_inds[i]/2)%r1)
-                    assert Gx.has_edge(ind1,ind2)
-            return path_y,path_x
 
         def compute_eff_Sx(Sx,loss_inds,remain_inds):
             Sx_new = []
@@ -130,10 +65,10 @@ for i_rep in np.arange(repeat):
                         del Sx_new[st_new_ind[1]]
             Sx_new = np.array(Sx_new, dtype=int)
 
-            for loss_index in loss_inds:
-                st_ind = np.argwhere(Sx_old[:,loss_index]>0)
-                st_new_ind = np.argwhere(Sx_new[:,loss_index]>0)
-                assert len(st_ind)+len(st_new_ind)==0
+            # for loss_index in loss_inds:
+            #     st_ind = np.argwhere(Sx_old[:,loss_index]>0)
+            #     st_new_ind = np.argwhere(Sx_new[:,loss_index]>0)
+            #     assert len(st_ind)+len(st_new_ind)==0
 
             num_Sx_red = len(inds_new)+len(inds_old)
             Sx_red = np.zeros((num_Sx_red,len(remain_inds)),dtype=int)
@@ -185,7 +120,7 @@ for i_rep in np.arange(repeat):
                     Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*( ((iy-1)%r2)+ r2*iz) )+1] = 1
                     Sx[ix + r1*(iy+ r2*iz), l*(ix + r1*(iy+ r2* ((iz-1)%r3)) )+2] = 1
 
-
+        tic = time.time()
         for i_loss in range(Nrep_loss):
 
            ## loss error
@@ -203,7 +138,7 @@ for i_rep in np.arange(repeat):
 
             Sx_red, qubits_to_plot = compute_eff_Sx(Sx,loss_inds,remain_inds)
 
-            lost_qubits = np.array(list(set(np.arange(l*r1*r2*r3)) - set(qubits_to_plot)))
+            # lost_qubits = np.array(list(set(np.arange(l*r1*r2*r3)) - set(qubits_to_plot)))
             # percolate_y, percolate_x = does_loss_percolate(lost_qubits)
             # loss_percolate = (percolate_x or percolate_y)
             # if loss_percolate:
@@ -247,7 +182,7 @@ for i_rep in np.arange(repeat):
                         continue
 
                     # find syndrome
-                    syndrome_x_orig = Sx@error_z_orig % 2
+                    syndrome_x_orig = (Sx@error_z_orig) % 2
                     synd_x_inds = np.argwhere(syndrome_x_orig > 0)
                     if len(synd_x_inds)>0:
                         rec2_orig = m_orig.decode(syndrome_x_orig)
@@ -260,7 +195,7 @@ for i_rep in np.arange(repeat):
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_fcts/" + "p_%.2f_L_%d_i_%d_new.npz" % (prob_l,r,i_rep)
-        # np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
+        fname = "data_loss_fcts/" + "p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
+        np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
