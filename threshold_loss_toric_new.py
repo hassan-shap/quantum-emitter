@@ -8,9 +8,9 @@ import time
 repeat = 4
 Nrep_loss = 2000 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [16,24,32] # [8,12,16,20]
+L_list = [8,12,16,20] #  [16,24,32] #
 prob_l = 0.4 # loss rate
-pz_list = np.linspace(0.01,0.1,6) #np.arange(0.02,0.071,0.005) 
+pz_list = np.linspace(0.002,0.02,6) #np.arange(0.02,0.071,0.005) 
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -186,24 +186,24 @@ for i_rep in np.arange(repeat):
             error_loss = np.random.rand(l*r1*r2) 
             loss_inds = np.argwhere(error_loss < prob_l)[:,0]
             remain_inds = np.argwhere(error_loss >= prob_l)[:,0]
-            percolate_y, percolate_x = does_loss_percolate(loss_inds) 
-            loss_percolate = (percolate_x or percolate_y)
-            if loss_percolate:
-                # fail_prob_z +=  1
-                loss_prob +=  1
-                continue
+            # percolate_y, percolate_x = does_loss_percolate(loss_inds) 
+            # loss_percolate = (percolate_x or percolate_y)
+            # if loss_percolate:
+            #     # fail_prob_z +=  1
+            #     loss_prob +=  1
+            #     continue
             error_loss[loss_inds] = 1
             error_loss[remain_inds] = 0
 
             Sx_red, qubits_to_plot = compute_eff_Sx(Sx,loss_inds,remain_inds)
 
-            lost_qubits = np.array(list(set(np.arange(l*r1*r2)) - set(qubits_to_plot)))
-            percolate_y, percolate_x = does_loss_percolate(lost_qubits)
-            loss_percolate = (percolate_x or percolate_y)
-            if loss_percolate:
-                # fail_prob_z +=  1
-                loss_prob +=  1
-                continue
+            # lost_qubits = np.array(list(set(np.arange(l*r1*r2)) - set(qubits_to_plot)))
+            # percolate_y, percolate_x = does_loss_percolate(lost_qubits)
+            # loss_percolate = (percolate_x or percolate_y)
+            # if loss_percolate:
+            #     # fail_prob_z +=  1
+            #     loss_prob +=  1
+            #     continue
 
             overlap = Sx_red.T@Sx_red
             Sx_red_netx, remain_qubits, inds_to_keep, nl = netx_Sx(Sx_red,overlap,qubits_to_plot)
