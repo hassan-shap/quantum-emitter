@@ -9,8 +9,8 @@ repeat = 4
 Nrep_loss = 2000 # number of iterations
 Nrep_flip = 1 # number of iterations
 L_list = [16,24,32] # [8,12,16,20]
-prob_l = 0.425 # loss rate
-pz_list = np.linspace(0.02,0.1,6) #np.arange(0.02,0.071,0.005) 
+prob_l = 0.4 # loss rate
+pz_list = np.linspace(0.01,0.1,6) #np.arange(0.02,0.071,0.005) 
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -21,9 +21,11 @@ for i_rep in np.arange(repeat):
         l = 2 # number of sublattice points (2 for toric code) or primal/dual
         r1 = r # number of columns
         r2 = r # number of rows
+        logicals = np.zeros((2,2*r1*r2))
+        logicals[0,1:2*r2+1:2] = np.ones(r2) 
+        logicals[1,0:2*r1*r2:2*r2] = np.ones(r1) 
 
         tic = time.time()
-
 
         def does_loss_percolate(loss_inds):
             Gy = nx.Graph()
@@ -141,86 +143,7 @@ for i_rep in np.arange(repeat):
             return Sx_red, qubits_to_plot
 
         ##################
-        def find_logical_ops(qubits_to_plot):
-            num_qubits = len(qubits_to_plot)
-            Gq_y = nx.Graph()
-            for qubit in qubits_to_plot:
-                if qubit % 2 == 0:
-                    if int(qubit/2)-r1 >= 0:
-                        Gq_y.add_edge(int(qubit/2),int(qubit/2)-r1)
-                else:
-                    q2 = int(int(qubit/2)/r1)*r1 + ((int(qubit/2)%r1-1)%r1)
-                    Gq_y.add_edge(int(qubit/2),q2)
-
-            first_row = np.arange(r1)
-            last_row = np.arange((r2-1)*r1,r2*r1)
-            path_y = False
-            for i_first in first_row:
-                if i_first in Gq_y.nodes():
-                    for i_last in last_row:
-                        if i_last in Gq_y.nodes():
-                            if nx.has_path(Gq_y,i_first,i_last):
-                                if (i_first - i_last )%r1 ==0 and (2*i_first in qubits_to_plot):
-                                    path_y = True
-                                    path_y_vals = nx.shortest_path(Gq_y,i_first,i_last)
-                                    break
-                if path_y:
-                    break
-
-            Gq_x = nx.Graph()
-            for qubit in qubits_to_plot:
-                if qubit % 2 == 1:
-                    if (int(qubit/2)%r1)-1 >= 0:
-                        Gq_x.add_edge(int(qubit/2),int(qubit/2)-1)
-                else:
-                    q2 = ((int(int(qubit/2)/r1)-1)%r2)*r1 + (int(qubit/2)%r1)
-                    Gq_x.add_edge(int(qubit/2),q2)
-
-            first_col = np.arange(0,(r2-1)*r1+1,r1)
-            last_col = np.arange(r1-1,r2*r1+1,r1)
-            path_x = False
-            for i_first in first_col:
-                if i_first in Gq_x.nodes():
-                    for i_last in last_col:
-                        if i_last in Gq_x.nodes():
-                            if nx.has_path(Gq_x,i_first,i_last):
-                                if int(i_first/r1) == int(i_last/r1) and (2*i_first+1 in qubits_to_plot):
-                                    path_x = True
-                                    path_x_vals = nx.shortest_path(Gq_x,i_first,i_last)
-                                    break
-                if path_x:
-                    break
-            # if path_x and path_y:
-            logical_y = np.zeros(l*r1*r2)
-            logical_y[2*path_y_vals[0]] = 1
-            for i_v, v1 in enumerate(path_y_vals):
-                if i_v < len(path_y_vals)-1:
-                    v2 = path_y_vals[i_v+1]
-                    if np.abs(v2-v1)==1:
-                        logical_y[2*max([v1,v2])+1] = 1
-                    elif np.abs(v2-v1)==r1:
-                        logical_y[2*max([v1,v2])] = 1
-                    else:
-                        logical_y[2*min([v1,v2])+1] = 1
-
-            logical_x = np.zeros(l*r1*r2)
-            logical_x[2*path_x_vals[0]+1] = 1
-            for i_v, v1 in enumerate(path_x_vals):
-                if i_v < len(path_x_vals)-1:
-                    v2 = path_x_vals[i_v+1]
-                    if np.abs(v2-v1)==1:
-                        logical_x[2*max([v1,v2])+1] = 1
-                    elif np.abs(v2-v1)==r1:
-                        logical_x[2*max([v1,v2])] = 1
-                    else:
-                        logical_x[2*min([v1,v2])] = 1
-            return logical_x, logical_y
-            # return path_x and path_y, logical_x, logical_y
-            # else:
-            #     return False, 0, 0
-
-        def netx_Sx(Sx_red,qubits_to_plot):
-            overlap = Sx_red.T@Sx_red
+        def netx_Sx(Sx_red,overlap,qubits_to_plot):
             inds_to_keep = list(range(np.size(Sx_red,1)))
             nl = []
             counter = 0
@@ -245,7 +168,7 @@ for i_rep in np.arange(repeat):
             # remain_qubits = remain_inds[keep_cols[inds_to_keep]]
             remain_qubits = qubits_to_plot[inds_to_keep]
             nl = np.array(nl)
-            return Sx_red_netx,remain_qubits, nl
+            return Sx_red_netx, remain_qubits, inds_to_keep, nl
 
         ##################
         # star stabilzers
@@ -282,14 +205,8 @@ for i_rep in np.arange(repeat):
                 loss_prob +=  1
                 continue
 
-            logical_x, logical_y = find_logical_ops(qubits_to_plot)
-            # logic_exist, logical_x, logical_y = find_logical_ops(qubits_to_plot)
-            # if not logic_exist:
-            #     fail_prob_z[i_L,i_p] +=  1
-            #     print("how?")
-            #     continue
-
-            Sx_red_netx, remain_qubits, nl = netx_Sx(Sx_red,qubits_to_plot)
+            overlap = Sx_red.T@Sx_red
+            Sx_red_netx, remain_qubits, inds_to_keep, nl = netx_Sx(Sx_red,overlap,qubits_to_plot)
             num_edge = len(remain_qubits) 
             ################
 
@@ -297,39 +214,48 @@ for i_rep in np.arange(repeat):
                 for i_n in range(Nrep_flip):
 
                     pl = (1-(1-2*prob_z)**nl)/2
+                    ########## weights on square lattice ############
+                    weights = np.zeros(2*r1*r2)
+                    weights[remain_qubits] = np.log((1-pl)/pl) 
+
+                    inds_to_keep_2 = list(range(np.size(Sx_red,1)))
+                    for i in range(num_edge):
+                        edge = inds_to_keep[i]
+                        ovlp_inds = np.argwhere(overlap[edge,inds_to_keep_2[i+1:]]==2)
+                        if len(ovlp_inds)>0:
+                            for j in ovlp_inds[::-1,0]:
+                                weights[qubits_to_plot[inds_to_keep_2[i+1+j]]] = np.log((1-pl[i])/pl[i]) 
+
+                    assert len(np.argwhere(weights>0))== len(qubits_to_plot)
+
                     error_table = np.random.rand(num_edge) < pl
                     zflip_inds = np.argwhere(error_table == True)[:,0]
                     no_zflip_inds = np.argwhere(error_table == False)[:,0]
-                    error_z = np.zeros(num_edge,dtype=int)
-                    error_z[zflip_inds] = 1
-                    error_z[no_zflip_inds] = 0
+                    error_z_orig = np.zeros(2*r1*r2,dtype=int)
+                    error_z_orig[remain_qubits[zflip_inds]] = 1
 
                     if num_edge > 1:
-                        m = Matching(Sx_red_netx,spacelike_weights=np.log((1-pl)/pl))
+                        m_orig = Matching(Sx,spacelike_weights=weights)
                     else:
                         print("how?")
                         fail_prob_z[i_p] +=  1
                         continue
 
                     # find syndrome
-                    syndrome_x = Sx_red_netx@error_z % 2
-                    synd_x_inds = np.argwhere(syndrome_x > 0)
+                    syndrome_x_orig = Sx@error_z_orig % 2
+                    synd_x_inds = np.argwhere(syndrome_x_orig > 0)
                     if len(synd_x_inds)>0:
-                        rec2 = m.decode(syndrome_x)
+                        rec2_orig = m_orig.decode(syndrome_x_orig)
+                        rec2_orig_inds = np.argwhere(rec2_orig > 0)[:,0]
 
-                        error_rec = (rec2 + error_z )%2
-                        s_h = np.dot( error_rec , logical_x[remain_qubits].T) %2 
-                        s_v = np.dot( error_rec, logical_y[remain_qubits].T) %2 
-
-                        assert np.sum(np.dot( error_rec , Sx_red_netx.T) % 2) == 0
-
-                        ###########
-                        if s_h + s_v  > 0:
+                        error_rec_orig = (rec2_orig + error_z_orig )%2
+                        s_orig = np.dot( error_rec_orig , logicals.T) %2 
+                        if np.sum(s_orig)  > 0:
                             fail_prob_z[i_p] +=  1
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d.npz" % (prob_l,r,i_rep)
+        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d_new.npz" % (prob_l,r,i_rep)
         np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
