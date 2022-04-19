@@ -6,11 +6,11 @@ import networkx as nx
 import time
 
 repeat = 4
-Nrep_loss = 2000 # number of iterations
+Nrep_loss = 1000 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [8,12,16,20] #  [16,24,32] #
+L_list = [8,12,16,24,32] #  [16,24,32] #
 prob_l = 0.4 # loss rate
-pz_list = np.linspace(0.002,0.02,6) #np.arange(0.02,0.071,0.005) 
+pz_list = np.linspace(0.01,0.05,6) #np.arange(0.02,0.071,0.005) 
 
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
@@ -255,7 +255,7 @@ for i_rep in np.arange(repeat):
 
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d_new.npz" % (prob_l,r,i_rep)
+        fname = "data_loss_toric/" + "p_%.2f_L_%d_i_%d_new2.npz" % (prob_l,r,i_rep)
         np.savez(fname, pz_list=pz_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
     print("Done!")
