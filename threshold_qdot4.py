@@ -6,12 +6,12 @@ import time
 
 
 l = 3 # number of sublattice points (2 for toric code) or primal/dual
-Nrep = 100 # number of iterations
-repeat = 4
+Nrep = 1000 # number of iterations
+repeat = 10
 L_list = [16,18,20]#[8,10,12,14]
 p1_list = np.linspace(0.003,0.007,10)
 
-for i_rep in np.arange(0,4+repeat):
+for i_rep in np.arange(0,repeat):
     for i_L, r in enumerate(L_list):
         
         tic = time.time()
