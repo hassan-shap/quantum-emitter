@@ -7,9 +7,10 @@ import time
 
 l = 3 # number of sublattice points (2 for toric code) or primal/dual
 Nrep = 1000 # number of iterations
-repeat = 4
-L_list = [8,10,12,14]
+repeat = 1
+L_list = [6]#[8,10,12,14]
 p1_list = np.linspace(0.003,0.007,10)
+# p1_list = np.linspace(0.0048,0.0061,10) # fine
 
 for i_rep in range(repeat):
 
@@ -43,10 +44,7 @@ for i_rep in range(repeat):
             logicals[1,np.ix_(1+ 3*(i1*r1*r2+ np.arange(0,r1) ) )] = np.ones(r1)
         logicals[2,2:3*r1*r2+1:3] = np.ones(r1*r2) 
 
-        m_orig = Matching(Sx)
-
-
-        # print(np.dot(logicals,logicals.T))
+        # m_orig = Matching(Sx)
         for i_p, p1 in enumerate(p1_list):
             # z flip error
             p2 = p1
@@ -57,6 +55,13 @@ for i_rep in range(repeat):
             p2_y = 4/15*p2
             p2_z = p2_y
             
+            num_qubits = l*r1*r2*r3
+            weights = np.zeros(num_qubits)
+            weights[0:num_qubits:3] = np.log((1-prob_x_axis)/prob_x_axis)
+            weights[1:num_qubits:3] = np.log((1-prob_y_axis)/prob_y_axis)
+            weights[2:num_qubits:3] = np.log((1-prob_z_axis)/prob_z_axis)
+            m_orig = Matching(Sx,spacelike_weights=weights)
+
             for i_n in range(Nrep):
                 
                 error_tot = np.zeros(l*r1*r2*r3,dtype=int)
@@ -123,7 +128,7 @@ for i_rep in range(repeat):
                     fail_prob_z[i_p] +=  1
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
-        fname = "data_qdot/" + "p1_eq_p2_L_%d_i_%d.npz" % (r,i_rep)
+        fname = "data_qdot/" + "p1_eq_p2_L_%d_i_%d_fine.npz" % (r,i_rep)
         np.savez(fname, p1_list=p1_list, fail_prob_z=fail_prob_z, Nrep=Nrep)
 
 print("Done!")

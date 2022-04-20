@@ -151,36 +151,35 @@ for i_rep in np.arange(repeat):
             num_edge = len(remain_qubits) 
             ################
             for i_p, prob_z in enumerate(pz_list):
+                pl = (1-(1-2*prob_z)**nl)/2
+                ########## weights on square lattice ############
+                weights = np.zeros(l*r1*r2*r3)
+                weights[remain_qubits] = np.log((1-pl)/pl) 
+
+                inds_to_keep_2 = list(range(np.size(Sx_red,1)))
+                for i in range(num_edge):
+                    edge = inds_to_keep[i]
+                    ovlp_inds = np.argwhere(overlap[edge,inds_to_keep_2[i+1:]]==2)
+                    if len(ovlp_inds)>0:
+                        for j in ovlp_inds[::-1,0]:
+                            weights[qubits_to_plot[inds_to_keep_2[i+1+j]]] = np.log((1-pl[i])/pl[i]) 
+
+                assert len(np.argwhere(weights>0))== len(qubits_to_plot)
+                if num_edge > 1:
+                    m_orig = Matching(Sx,spacelike_weights=weights)
+                else:
+                    print("how?")
+                    fail_prob_z[i_p] +=  1
+                    continue
+
                 for i_n in range(Nrep_flip):
-
-                    pl = (1-(1-2*prob_z)**nl)/2
-                    ########## weights on square lattice ############
-                    weights = np.zeros(l*r1*r2*r3)
-                    weights[remain_qubits] = np.log((1-pl)/pl) 
-
-                    inds_to_keep_2 = list(range(np.size(Sx_red,1)))
-                    for i in range(num_edge):
-                        edge = inds_to_keep[i]
-                        ovlp_inds = np.argwhere(overlap[edge,inds_to_keep_2[i+1:]]==2)
-                        if len(ovlp_inds)>0:
-                            for j in ovlp_inds[::-1,0]:
-                                weights[qubits_to_plot[inds_to_keep_2[i+1+j]]] = np.log((1-pl[i])/pl[i]) 
-
-                    assert len(np.argwhere(weights>0))== len(qubits_to_plot)
 
                     error_table = np.random.rand(num_edge) < pl
                     zflip_inds = np.argwhere(error_table == True)[:,0]
                     no_zflip_inds = np.argwhere(error_table == False)[:,0]
                     error_z_orig = np.zeros(l*r1*r2*r3,dtype=int)
                     error_z_orig[remain_qubits[zflip_inds]] = 1
-
-                    if num_edge > 1:
-                        m_orig = Matching(Sx,spacelike_weights=weights)
-                    else:
-                        print("how?")
-                        fail_prob_z[i_p] +=  1
-                        continue
-
+           
                     # find syndrome
                     syndrome_x_orig = (Sx@error_z_orig) % 2
                     synd_x_inds = np.argwhere(syndrome_x_orig > 0)
