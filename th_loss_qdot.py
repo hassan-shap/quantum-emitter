@@ -8,10 +8,10 @@ import time
 repeat = 4
 Nrep_loss = 1000 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [6,8,10]#[16,24,32] # [8,12,16,20]
+L_list = [6,8,10,12]#[16,24,32] # [8,12,16,20]
 p_loss = [0.2] # loss rate
 # p1_list = np.linspace(0.001,0.008,6) #np.arange(0.02,0.071,0.005) 
-p1_list = np.linspace(0.0001,0.002,10)
+p1_list = np.linspace(0.00001,0.0005,10)
 l = 3 # number of links per node
 
 for prob_l in p_loss:
@@ -328,7 +328,7 @@ for prob_l in p_loss:
 
             toc = time.time()
             print("Finished in %d secs" % (toc-tic))
-            fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_new.npz" % (prob_l,r,i_rep)
+            fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
             np.savez(fname, p1_list=p1_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
         print("Done!")
