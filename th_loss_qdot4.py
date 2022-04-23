@@ -9,14 +9,15 @@ repeat = 10
 Nrep_loss = 1000 # number of iterations
 Nrep_flip = 1 # number of iterations
 L_list = [6,8,10]#[16,24,32] # [8,12,16,20]
-p_loss = [0.1,0.15] # loss rate
-p1_list = np.linspace(0.001,0.005,8) #np.arange(0.02,0.071,0.005) 
+p_loss = [0.2] # loss rate
+# p1_list = np.linspace(0.001,0.005,8) #np.arange(0.02,0.071,0.005) 
+p1_list = np.linspace(0.00001,0.0005,10)
 # p1_list = np.linspace(0.0001,0.002,10)
 l = 3 # number of links per node
 
 for prob_l in p_loss:
     print("p_loss= ", prob_l)
-    for i_rep in np.arange(repeat):
+    for i_rep in np.arange(4,4+repeat):
         for i_L, r in enumerate(L_list):
             print("L= ", r, " rep= ", i_rep)
             fail_prob_z = np.zeros(len(p1_list))
