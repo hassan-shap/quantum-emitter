@@ -4,9 +4,9 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 10
-Nrep_loss = 400 # number of iterations
-L_list = [6,8]#[16,24,32] # [8,12,16,20]
+repeat = 20
+Nrep_loss = 100 # number of iterations
+L_list = np.arange(4,13)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.3,1,10)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -15,7 +15,7 @@ l = 3 # number of links per node
 for i_rep in np.arange(repeat):
     for i_L, r in enumerate(L_list):
         print("L= ", r, " rep= ", i_rep)
-        p_loss = 1- np.exp(-eta_list*r**2)
+        p_loss = 1- np.exp(-eta_list* r**2)
         fail_prob_z = np.zeros(len(p_loss))
         loss_prob = 0
 
@@ -67,32 +67,99 @@ for i_rep in np.arange(repeat):
             return Sx_red2, qubits_to_plot
 
         ##################
+#         def netx_Sx(Sx_red,overlap,qubits_to_plot):
+#             inds = np.argwhere(overlap>1)
+#             rep_edges = []
+#             for i_v in inds:
+#                 if i_v[1]>i_v[0]:
+#                     if not (i_v[0] in rep_edges):
+#                         rep_edges.append(i_v[0])
+#                     if not (i_v[1] in rep_edges):
+#                         rep_edges.append(i_v[1])
+
+#             rep_edges = np.sort(rep_edges)
+#             not_rep_qubits = np.array(list(set(range(np.size(Sx_red,1))) - set(rep_edges)))
+#             num_not_rep = len(not_rep_qubits)
+#             inds_to_keep2 = list(range(len(rep_edges)))
+#             if len(rep_edges)>0:
+
+#                 ql2 = []
+#                 nl2 = []
+#                 nl_x2 = []
+#                 nl_y2 = []
+#                 counter = 0
+#                 i = 0 
+#                 overlap2 = overlap[np.ix_(rep_edges,rep_edges)]
+#                 while counter < len(rep_edges):
+#                     edge = inds_to_keep2[i]
+#                     ovlp_inds = np.argwhere(overlap2[edge,inds_to_keep2[i+1:]]==2)
+#                     if qubits_to_plot[rep_edges[edge]] %l ==0:
+#                         nl_i_x = 1
+#                         nl_i_y = 0 
+#                     else:
+#                         nl_i_x = 0 
+#                         nl_i_y = 1
+#                     nl_i = len(ovlp_inds)+1
+
+#                     qlist = qubits_to_plot[rep_edges[np.ix_([ inds_to_keep2[k] for k in i+1+ovlp_inds[:,0]])]]
+#                     ovlp_inds_x = np.argwhere(qlist %l==0)
+#                     ovlp_inds_y = np.argwhere(qlist %l >0)
+#                     nl_i_x += len(ovlp_inds_x)
+#                     nl_i_y += len(ovlp_inds_y)
+#                     for j in ovlp_inds[::-1,0]:
+#                         inds_to_keep2.remove(inds_to_keep2[i+1+j])
+#                     ql2.append(np.concatenate(([qubits_to_plot[rep_edges[edge]]],qlist)))
+#                     counter += nl_i
+#                     nl2.append(nl_i)
+#                     nl_x2.append(nl_i_x)
+#                     nl_y2.append(nl_i_y)
+#                     i += 1
+
+#             num_rep = len(inds_to_keep2)
+#             nl_x_tot = np.zeros(num_rep+num_not_rep)
+#             # print(rep_edges, not_rep_qubits)
+#             nl_x_tot[ np.argwhere(qubits_to_plot[not_rep_qubits]%l ==0)  ] = 1 
+#             if len(rep_edges)>0:
+#                 nl_x_tot[len(not_rep_qubits):] = nl_x2
+
+#             nl_y_tot = np.zeros(num_rep+num_not_rep)
+#             nl_y_tot[ np.argwhere(qubits_to_plot[not_rep_qubits]%l >0)  ] = 1 
+#             if len(rep_edges)>0:
+#                 nl_y_tot[num_not_rep:] = nl_y2
+
+#             nl_tot = np.concatenate((np.ones(num_not_rep),nl2))
+
+#             inds_to_keep2 = rep_edges[inds_to_keep2]
+#             comb_inds = np.concatenate((not_rep_qubits,inds_to_keep2))
+#             inds_sorted = np.argsort(comb_inds)
+#             inds_to_keep2 = comb_inds[inds_sorted]
+#             nl_x_tot = nl_x_tot[inds_sorted]
+#             nl_y_tot = nl_y_tot[inds_sorted]
+#             nl_tot = nl_tot[inds_sorted]
+#             remain_qubits = qubits_to_plot[inds_to_keep2]
+#             # Sx_red_netx = Sx_red[:,inds_to_keep]
+
+#             ql_tot = []
+#             rep_count = 0
+#             for i in inds_sorted:
+#                 if i< num_not_rep:
+#                     ql_tot.append([qubits_to_plot[not_rep_qubits[i]]])
+#                 else:
+#                     ql_tot.append(ql2[rep_count][:])
+#                     rep_count += 1
+#             return remain_qubits, inds_to_keep2, ql_tot, nl_x_tot, nl_y_tot
         def netx_Sx(Sx_red,overlap,qubits_to_plot):
-            inds = np.argwhere(overlap>1)
-            rep_edges = []
-            for i_v in inds:
-                if i_v[1]>i_v[0]:
-                    if not (i_v[0] in rep_edges):
-                        rep_edges.append(i_v[0])
-                    if not (i_v[1] in rep_edges):
-                        rep_edges.append(i_v[1])
-
-            rep_edges = np.sort(rep_edges)
-            not_rep_qubits = np.array(list(set(range(np.size(Sx_red,1))) - set(rep_edges)))
-            num_not_rep = len(not_rep_qubits)
-
-            ql2 = []
-            nl2 = []
-            nl_x2 = []
-            nl_y2 = []
+            inds_to_keep = list(range(np.size(Sx_red,1)))
+            ql = []
+            nl = []
+            nl_x = []
+            nl_y = []
             counter = 0
             i = 0 
-            overlap2 = overlap[np.ix_(rep_edges,rep_edges)]
-            inds_to_keep2 = list(range(len(rep_edges)))
-            while counter < len(rep_edges):
-                edge = inds_to_keep2[i]
-                ovlp_inds = np.argwhere(overlap2[edge,inds_to_keep2[i+1:]]==2)
-                if qubits_to_plot[rep_edges[edge]] %l ==0:
+            while counter < np.size(Sx_red,1):
+                edge = inds_to_keep[i]
+                ovlp_inds = np.argwhere(overlap[edge,inds_to_keep[i+1:]]==2)
+                if qubits_to_plot[edge] %l ==0:
                     nl_i_x = 1
                     nl_i_y = 0 
                 else:
@@ -100,51 +167,31 @@ for i_rep in np.arange(repeat):
                     nl_i_y = 1
                 nl_i = len(ovlp_inds)+1
 
-                qlist = qubits_to_plot[rep_edges[np.ix_([ inds_to_keep2[k] for k in i+1+ovlp_inds[:,0]])]]
-                ovlp_inds_x = np.argwhere(qlist %l==0)
-                ovlp_inds_y = np.argwhere(qlist %l >0)
-                nl_i_x += len(ovlp_inds_x)
-                nl_i_y += len(ovlp_inds_y)
-                for j in ovlp_inds[::-1,0]:
-                    inds_to_keep2.remove(inds_to_keep2[i+1+j])
-                ql2.append(np.concatenate(([qubits_to_plot[rep_edges[edge]]],qlist)))
+                if len(ovlp_inds)>0:
+                    qlist = qubits_to_plot[np.ix_([ inds_to_keep[k] for k in i+1+ovlp_inds[:,0]])]
+                    ovlp_inds_x = np.argwhere(qlist %l==0)
+                    ovlp_inds_y = np.argwhere(qlist %l >0)
+                    nl_i_x += len(ovlp_inds_x)
+                    nl_i_y += len(ovlp_inds_y)
+                    for j in ovlp_inds[::-1,0]:
+                        inds_to_keep.remove(inds_to_keep[i+1+j])
+                    ql.append(np.concatenate(([qubits_to_plot[edge]],qlist)))
+                else:
+                    ql.append([qubits_to_plot[edge]])
+
                 counter += nl_i
-                nl2.append(nl_i)
-                nl_x2.append(nl_i_x)
-                nl_y2.append(nl_i_y)
+                nl.append(nl_i)
+                nl_x.append(nl_i_x)
+                nl_y.append(nl_i_y)
                 i += 1
 
-            num_rep = len(inds_to_keep2)
-            nl_x_tot = np.zeros(num_rep+num_not_rep)
-            nl_x_tot[ np.argwhere(qubits_to_plot[not_rep_qubits]%l ==0)  ] = 1 
-            nl_x_tot[len(not_rep_qubits):] = nl_x2
+            Sx_red_netx = Sx_red[:,inds_to_keep]
+            remain_qubits = qubits_to_plot[inds_to_keep]
+            nl = np.array(nl)
+            nl_x = np.array(nl_x)
+            nl_y = np.array(nl_y)
 
-            nl_y_tot = np.zeros(num_rep+num_not_rep)
-            nl_y_tot[ np.argwhere(qubits_to_plot[not_rep_qubits]%l >0)  ] = 1 
-            nl_y_tot[num_not_rep:] = nl_y2
-
-            nl_tot = np.concatenate((np.ones(num_not_rep),nl2))
-
-            inds_to_keep2 = rep_edges[inds_to_keep2]
-            comb_inds = np.concatenate((not_rep_qubits,inds_to_keep2))
-            inds_sorted = np.argsort(comb_inds)
-            inds_to_keep2 = comb_inds[inds_sorted]
-            nl_x_tot = nl_x_tot[inds_sorted]
-            nl_y_tot = nl_y_tot[inds_sorted]
-            nl_tot = nl_tot[inds_sorted]
-            remain_qubits = qubits_to_plot[inds_to_keep2]
-            # Sx_red_netx = Sx_red[:,inds_to_keep]
-
-            ql_tot = []
-            rep_count = 0
-            for i in inds_sorted:
-                if i< num_not_rep:
-                    ql_tot.append([qubits_to_plot[not_rep_qubits[i]]])
-                else:
-                    ql_tot.append(ql2[rep_count][:])
-                    rep_count += 1
-
-            return remain_qubits, inds_to_keep2, ql_tot, nl_x_tot, nl_y_tot
+            return remain_qubits, inds_to_keep, ql, nl_x, nl_y
 
         ##################
         # star stabilzers
@@ -161,6 +208,7 @@ for i_rep in np.arange(repeat):
 
         tic = time.time()
         for i_p, prob_l in enumerate(p_loss):
+            # print(prob_l)
             for i_loss in range(Nrep_loss):
 
                ## loss error
@@ -280,7 +328,9 @@ for i_rep in np.arange(repeat):
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
         # fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
-        fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.2f_L_%d_i_%d.npz" % (p1,r,i_rep)
-        np.savez(fname, p_loss=p_loss, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss)
+        fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.1f_L_%d_i_%d.npz" % (p1*1e3,r,i_rep)
+        np.savez(fname, eta_list=eta_list, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss)
 
     print("Done!")
+    
+
