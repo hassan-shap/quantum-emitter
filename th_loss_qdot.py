@@ -5,18 +5,19 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 4
-Nrep_loss = 1000 # number of iterations
+repeat = 10
+Nrep_loss = 400 # number of iterations
 Nrep_flip = 1 # number of iterations
-L_list = [6,8,10,12]#[16,24,32] # [8,12,16,20]
+L_list = [10,12,14,16]#[16,24,32] # [8,12,16,20]
 p_loss = [0.2] # loss rate
-# p1_list = np.linspace(0.001,0.008,6) #np.arange(0.02,0.071,0.005) 
-p1_list = np.linspace(0.00001,0.0005,10)
+p1_list = np.linspace(1e-5,1.5e-3,8) #np.arange(0.02,0.071,0.005) 
+ #np.arange(0.02,0.071,0.005) 
+# p1_list = np.linspace(0.00001,0.0005,10)
 l = 3 # number of links per node
 
 for prob_l in p_loss:
     print("p_loss= ", prob_l)
-    for i_rep in np.arange(repeat):
+    for i_rep in np.arange(10,10+repeat):
         for i_L, r in enumerate(L_list):
             print("L= ", r, " rep= ", i_rep)
             fail_prob_z = np.zeros(len(p1_list))
@@ -328,7 +329,8 @@ for prob_l in p_loss:
 
             toc = time.time()
             print("Finished in %d secs" % (toc-tic))
-            fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
+            # fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
+            fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_new2.npz" % (prob_l,r,i_rep)
             np.savez(fname, p1_list=p1_list, loss_prob=loss_prob, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss, Nrep_flip=Nrep_flip)
 
         print("Done!")
