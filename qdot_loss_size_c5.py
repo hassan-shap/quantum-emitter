@@ -4,7 +4,7 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 10
+repeat = 20
 Nrep_loss = 1000 # number of iterations
 L_list = np.arange(4,10)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
@@ -12,7 +12,7 @@ p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
 l = 3 # number of links per node
 
-for i_rep in np.arange(repeat):
+for i_rep in np.arange(40,40+repeat):
     for i_L, r in enumerate(L_list):
         print("L= ", r, " rep= ", i_rep)
         p_loss = 1- np.exp(-eta_list* r**2)
