@@ -5,14 +5,14 @@ import networkx as nx
 import time
 
 repeat = 20
-Nrep_loss = 100 # number of iterations
-L_list = np.arange(4,13)#[16,24,32] # [8,12,16,20]
-eta_list = np.linspace(0.3,1,10)*1e-3
+Nrep_loss = 1000 # number of iterations
+L_list = np.arange(4,10)#[16,24,32] # [8,12,16,20]
+eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
 l = 3 # number of links per node
 
-for i_rep in np.arange(repeat):
+for i_rep in np.arange(10,10+repeat):
     for i_L, r in enumerate(L_list):
         print("L= ", r, " rep= ", i_rep)
         p_loss = 1- np.exp(-eta_list* r**2)
@@ -328,7 +328,7 @@ for i_rep in np.arange(repeat):
         toc = time.time()
         print("Finished in %d secs" % (toc-tic))
         # fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
-        fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.1f_L_%d_i_%d.npz" % (p1*1e3,r,i_rep)
+        fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.1f_L_%d_i_%d_new.npz" % (p1*1e3,r,i_rep)
         np.savez(fname, eta_list=eta_list, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss)
 
     print("Done!")
