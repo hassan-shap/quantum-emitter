@@ -6,7 +6,7 @@ import time
 
 repeat = 32
 Nrep_loss = 1000 # number of iterations
-L_list = np.arange(4,10)#[16,24,32] # [8,12,16,20]
+L_list = np.arange(11,13)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -310,6 +310,6 @@ for r in L_list:
         print("Done!")
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(32,32+repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(96,96+repeat))
 
 
