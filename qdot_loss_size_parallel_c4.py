@@ -16,7 +16,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 # what are your inputs, and what operation do you want to
 # perform on each input. For example...
-num_cores = multiprocessing.cpu_count()                                     
+num_cores = 12#multiprocessing.cpu_count()                                     
 
 for r in L_list:    
     print("L= %d" % (r))
@@ -311,4 +311,5 @@ for r in L_list:
         return 0
     
     results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(32,32+repeat))
+
 
