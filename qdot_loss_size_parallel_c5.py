@@ -4,9 +4,9 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 32
+repeat = 96
 Nrep_loss = 1000 # number of iterations
-L_list = np.arange(4,10)#[16,24,32] # [8,12,16,20]
+L_list = np.arange(12,13)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -16,7 +16,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 # what are your inputs, and what operation do you want to
 # perform on each input. For example...
-num_cores = multiprocessing.cpu_count()                                     
+num_cores = 12#multiprocessing.cpu_count()                                     
 
 for r in L_list:    
     print("L= %d" % (r))
@@ -310,5 +310,5 @@ for r in L_list:
         print("Done!")
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(96,96+repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(repeat))
 
