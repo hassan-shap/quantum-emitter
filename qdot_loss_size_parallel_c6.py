@@ -4,9 +4,9 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 120
+repeat = 72
 Nrep_loss = 1000 # number of iterations
-L_list = np.arange(9,11)#[16,24,32] # [8,12,16,20]
+L_list = np.arange(10,11)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -302,7 +302,7 @@ for r in L_list:
                         fail_prob_z[i_p] +=  1
 
         toc = time.time()
-        print("Finished in %d secs" % (toc-tic))
+        print("Finished L= %d, r=%d in %d secs" % (r,i_rep,toc-tic))
         # fname = "data_loss_qdot/" + "p1_eq_p2_p_%.2f_L_%d_i_%d_fine.npz" % (prob_l,r,i_rep)
         fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.1f_L_%d_i_%d_par.npz" % (p1*1e3,r,i_rep)
         np.savez(fname, eta_list=eta_list, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss)
@@ -310,5 +310,5 @@ for r in L_list:
         print("Done!")
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(200,200+repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(128,128+repeat))
 
