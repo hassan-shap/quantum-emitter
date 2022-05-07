@@ -4,7 +4,7 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 32
+repeat = 36
 Nrep_loss = 1000 # number of iterations
 L_list = np.arange(11,13)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
