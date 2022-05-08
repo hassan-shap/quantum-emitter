@@ -4,9 +4,9 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 72
+repeat = 120
 Nrep_loss = 1000 # number of iterations
-L_list = np.arange(10,11)#[16,24,32] # [8,12,16,20]
+L_list = np.arange(11,12)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -310,5 +310,5 @@ for r in L_list:
         print("Done!")
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(128,128+repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(132,132+repeat))
 
