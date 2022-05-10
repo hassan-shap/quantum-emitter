@@ -6,7 +6,7 @@ import time
 
 repeat = 120
 Nrep_loss = 1000 # number of iterations
-L_list = np.arange(11,12)#[16,24,32] # [8,12,16,20]
+L_list = np.arange(7,9)#[16,24,32] # [8,12,16,20]
 eta_list = np.linspace(0.5,1.5,8)*1e-3
 p1 = 1e-3
 # p1_list = np.linspace(0.00001,0.0005,10)
@@ -307,8 +307,8 @@ for r in L_list:
         fname = "data_loss_qdot_size/" + "p1_eq_p2_p_%.1f_L_%d_i_%d_par.npz" % (p1*1e3,r,i_rep)
         np.savez(fname, eta_list=eta_list, fail_prob_z=fail_prob_z, Nrep_loss=Nrep_loss)
 
-        print("Done!")
+        # print("Done!")
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(132,132+repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(280,280+repeat))
 
