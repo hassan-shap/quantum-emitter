@@ -7,9 +7,9 @@ import time
 
 repeat = 60
 Nrep_loss = 1000 # number of iterations
-L_list = [12,14,16]#[16,24,32] # [8,12,16,20]
+L_list = [8,10,12,14,16]#[16,24,32] # [8,12,16,20]
 prob_l = 0.1 # loss rate
-p1_list = np.linspace(1e-3,5e-3,8) #np.arange(0.02,0.071,0.005) 
+p1_list = np.linspace(1e-3,4e-3,8) #np.arange(0.02,0.071,0.005) 
 # p1_list = np.linspace(0.0001,0.002,10)
 l = 3 # number of links per node
 
