@@ -5,18 +5,24 @@ from pymatching import Matching
 import time
 
 
-l = 3 # number of sublattice points (2 for toric code) or primal/dual
+repeat = 76
 Nrep = 1000 # number of iterations
-repeat = 8
-L_list = [16,18,20]
-p1_list = np.linspace(0.003,0.007,10)
+L_list = [10,12,14,16,18]
+p11_list = np.linspace(3e-3,1e-2,8) # coarse
+p12_list = np.linspace(4.5e-3,6e-3,15) # fine
+p1_list = np.sort(np.concatenate((p11_list,p12_list)))
+l = 3 # number of links per node
 
-for i_rep in range(repeat):
 
-    for i_L, r in enumerate(L_list):
-        
-        tic = time.time()
-        print("L= ", r, " rep= ", i_rep)
+from joblib import Parallel, delayed
+import multiprocessing
+# what are your inputs, and what operation do you want to
+# perform on each input. For example...
+num_cores = 12#multiprocessing.cpu_count()  
+
+for r in L_list:    
+    print("L= %d" % (r))
+    def runner(i_rep):        
         fail_prob_z = np.zeros(len(p1_list))
 
         r1 = r # dimension of cube
@@ -42,6 +48,8 @@ for i_rep in range(repeat):
         for i1 in range(r3):
             logicals[1,np.ix_(1+ 3*(i1*r1*r2+ np.arange(0,r1) ) )] = np.ones(r1)
         logicals[2,2:3*r1*r2+1:3] = np.ones(r1*r2) 
+
+        tic = time.time()
 
         # m_orig = Matching(Sx)
         for i_p, p1 in enumerate(p1_list):
@@ -126,8 +134,11 @@ for i_rep in range(repeat):
                 if np.sum(np.dot( (rec_x + error_tot )%2, logicals.T) %2)  > 0:
                     fail_prob_z[i_p] +=  1
         toc = time.time()
-        print("Finished in %d secs" % (toc-tic))
-        fname = "data_qdot/" + "p1_eq_p2_L_%d_i_%d_new.npz" % (r,i_rep)
+        print("Finished L= %d, r=%d in %d secs" % (r,i_rep,toc-tic))
+        fname = "draft_qdot/" + "L_%d_i_%d.npz" % (r,i_rep)
         np.savez(fname, p1_list=p1_list, fail_prob_z=fail_prob_z, Nrep=Nrep)
 
-print("Done!")
+        return 0
+
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(24,24+repeat))
+

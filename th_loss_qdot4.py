@@ -5,12 +5,13 @@ from pymatching import Matching
 import networkx as nx
 import time
 
-repeat = 60
+repeat = 36
 Nrep_loss = 1000 # number of iterations
 L_list = [8,10,12,14,16]#[16,24,32] # [8,12,16,20]
-prob_l = 0.18 # loss rate
+prob_l = 0.01 # loss rate
 # p1_list = np.linspace(1e-3,2.5e-3,8) # smaller than 0.18
-p1_list = np.linspace(7e-4,1.6e-3,8) # larger
+# p1_list = np.linspace(7e-4,1.6e-3,8) # larger
+p1_list = np.linspace(4.2e-3,6.2e-3,8) # 0.01
 # p1_list = np.linspace(0.0001,0.002,10)
 l = 3 # number of links per node
 
@@ -336,7 +337,7 @@ for r in L_list:
 
         return 0
     
-    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(repeat))
+    results = Parallel(n_jobs=num_cores)(delayed(runner)(i_rep) for i_rep in range(24,24+repeat))
 
 
 
